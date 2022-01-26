@@ -1,0 +1,226 @@
+{
+	"info": {
+		"_postman_id": "46909b3d-20c4-4e42-b321-8b40a25ac3aa",
+		"name": "battle-node",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "player 1",
+			"item": [
+				{
+					"name": "Get Player 1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3001/player1",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CHALLENGE",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/player1/challenge",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1",
+								"challenge"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RULES responde 200",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/player1/rules",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1",
+								"rules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "INIT sube posiciones",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"positions\": {\n        \"destroyer\":[\"A1\",\"D1\"],\n        \"patrol_boat\":[\"B3\",\"B7\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3001/player1/init",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1",
+								"init"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SHOT X/Y",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3001/player1/shot/X/Y",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1",
+								"shot",
+								"X",
+								"Y"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "rival player",
+			"item": [
+				{
+					"name": "Get player2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3002/player2",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CHALLENGE",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3002/player2/challenge",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2",
+								"challenge"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RULES",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"rules\": {\n\"width\": 26,\n\"height\": 26,\n\"ships\": {\n\"patrol_boat\": 5,\n\"submarine\": 4,\n\"destroyer\": 3,\n\"carrier\": 1\n}\n}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3002/player2/rules",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2",
+								"rules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3002/player2/init",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2",
+								"init"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

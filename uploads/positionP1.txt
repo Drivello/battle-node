@@ -1,0 +1,1 @@
+{"destroyer":["A1","D1"],"patrol_boat":["B3","B7"]}

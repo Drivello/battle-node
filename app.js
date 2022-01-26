@@ -24,8 +24,12 @@ app1.use('/player1', player1routes)
 app2.use('/player2', player2routes)
 
 
-// Socket connection
-//const io = socketio(app)
+//puerto
+// app1.listen(3000, () => { console.log("Started server on 3000"); }); 
+// app2.listen(3003, () => { console.log("Started server on 3003"); });
+
+//Socket connection
+// const io = socketio(server1)
 
 module.exports = {
     app1,
