@@ -16,8 +16,7 @@ router.post('/challenge', async (req, res) => {
         const resp = await axios.post('http://localhost:3002/player2/challenge', {
             msg: "lets play"
         })
-
-        if(resp.data.status === "SUCESS"){
+        if(resp.data.status === "SUCCESS"){
             serverStatus = 'WAITING RULES'
             res.status(200).send('OK')
         } 
@@ -35,6 +34,7 @@ router.post('/rules', async(req, res) => {
     try {
         if(Object.keys(rulesP2).length === 3 && serverStatus === 'WAITING RULES') {
             serverStatus = 'SETTING UP'
+            //TODO: subir grilla
             res.status(200).json({
                 status: 'SUCCESS',
             })
@@ -54,8 +54,10 @@ router.post('/init', async(req, res) => {
     try {
         const { positions } = req.body;
         const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+        
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
             serverStatus = 'PROCESSING PLACEMENT'
+            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array 
             fs.writeFileSync(reqPath, JSON.stringify(positions))
             serverStatus = 'WAITING RIVAL'
             res.status(200).send('OK')
@@ -69,38 +71,33 @@ router.post('/init', async(req, res) => {
 
 });
 
-router.post('/ready', async(req, res) => {
+// //TODO: este ready es necesario?
+// router.post('/ready', async(req, res) => {
 
-    const {msg} = req.body
+//     try {
+                
+//         const resp = await axios.post('http://localhost:3002/player2/ready', {message: "ready"})
+//         if(resp.serverStatus=== 'SENDING SHOT') {
+//             serverStatus = 'WAITING SHOT'
+//         }
+        
+//         res.status(200).send('OK')
+//     } catch (error) {
+//         console.log('error /ready p1', error.message)
+//     }    
+    
+// })
+
+router.post('/shot/:X/:Y', async(req, res) => {
+
+    const { X, Y} = req.params;
+    const positionShot = X+Y;
+
 
     try {
-        if(!msg) {
-            res.status(200).json({
-                status: serverStatus,
-            })
-        }else{
-            serverStatus = 'READY'
-            const resp = await axios.post('http://localhost:3002/player2/ready', msg)
-            if(resp.serverStatus=== 'READY') {
-                serverStatus = 'WAITING RIVAL'
-            }
-        }
-        
-    } catch (error) {
-        
-    }
-
-    // if()
-
-    
-    
-})
-
-router.post('/shot/X/Y', async(req, res) => {
-
-    //TODO: leer el archivo de posiciones
-    try {
-        const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+        // leer el archivo de posiciones del Rival ? y ver si las posiciones que
+        // llegan por params coinciden con alguna
+        const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
         const data = fs.readFileSync(reqPath, 'utf8');
         console.log(JSON.parse(data));
     } catch(error){
@@ -110,7 +107,7 @@ router.post('/shot/X/Y', async(req, res) => {
 
 
 router.post('/yield', async(req, res) => {
-    
+    serverStatus = 'IDLE';
 })
 
 
