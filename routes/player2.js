@@ -37,6 +37,8 @@ router.post('/rules', async(req, res) => {
         if(resp.data.status === 'SUCCESS'){
             serverStatus = 'SETTING UP';
             //TODO: grilla
+            const grill2 = generateGridData(rules.width, rules.height);
+            console.log('grilla p1', grill2)
             res.status(200).send('OK')
         }
         else{
@@ -60,9 +62,14 @@ router.post('/ready', async(req, res) => {
         let serverStatus = 'RIVAL WAITING'; // eliminar
 
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
+            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array
+            for(let pos in positions){
+                gridPositions(grill, pos);
+            } 
+            console.log(grill)
+
             fs.writeFileSync(reqPath, JSON.stringify(positions))
             serverStatus = 'PROCESSING SHIP PLACEMENT';
-            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array 
             
             await axios.post('localhost:3001/shot/:X/:Y', {
                 msg: 'finished placement'
@@ -71,7 +78,6 @@ router.post('/ready', async(req, res) => {
             res.status(200).json({
                 status: 'SUCCESS',
             })
-            
         } else{
             throw new Error('Server is not on the mood')
         }
@@ -100,7 +106,8 @@ router.post('/ready', async(req, res) => {
 // })
 
 router.post('/shot/X/Y', async(req, res) => {
-    
+    const { positions } = req.body;
+
 })
 
 router.post('/yield', async(req, res) => {

@@ -3,7 +3,10 @@ const router = Router();
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-var serverStatus = 'IDLE';
+const generateGridData = require("../helpers/generateGrid");
+const gridPositions = require('../helpers/gridpositions');
+let serverStatus = 'IDLE';
+let grill;
 
 
 router.get('/', async(req, res) => {
@@ -35,6 +38,8 @@ router.post('/rules', async(req, res) => {
         if(Object.keys(rulesP2).length === 3 && serverStatus === 'WAITING RULES') {
             serverStatus = 'SETTING UP'
             //TODO: subir grilla
+            grill = generateGridData(rulesP2.width, rulesP2.heigth);
+            console.log(grill1)
             res.status(200).json({
                 status: 'SUCCESS',
             })
@@ -54,11 +59,17 @@ router.post('/init', async(req, res) => {
     try {
         const { positions } = req.body;
         const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+
+         serverStatus = 'RIVAL WAITING'; //eliminar
         
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
             serverStatus = 'PROCESSING PLACEMENT'
-            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array 
             fs.writeFileSync(reqPath, JSON.stringify(positions))
+            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array
+            for(let pos in positions){
+                gridPositions(grill, pos);
+            } 
+            console.log(grill)
             serverStatus = 'WAITING RIVAL'
             res.status(200).send('OK')
         } else{
@@ -95,11 +106,18 @@ router.post('/shot/:X/:Y', async(req, res) => {
 
 
     try {
-        // leer el archivo de posiciones del Rival ? y ver si las posiciones que
-        // llegan por params coinciden con alguna
-        const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
-        const data = fs.readFileSync(reqPath, 'utf8');
-        console.log(JSON.parse(data));
+        //
+        // const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
+        // const data = fs.readFileSync(reqPath, 'utf8');
+        // console.log(JSON.parse(data));
+
+        //TODO: enviar las coordenadas positionShot al Rival
+        await axios.post("localhost:3002/player2/shot/:X/:Y", {
+            shot: positionShot
+        })
+
+        res.status(200).send('Send shot');
+
     } catch(error){
         console.log(error);
     }
