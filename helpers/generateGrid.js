@@ -11,8 +11,8 @@ const generateGridData = (width = 10, height = 10) => {
         let segundaLetra = String.fromCharCode(65 + i - acc * 26)
         grid[primerLetra + segundaLetra] = new Array(width).fill(0);
       }
-      return grid;
     }
+    return grid;
   };
 
 module.exports = generateGridData;

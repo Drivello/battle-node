@@ -4,7 +4,9 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const generateGridData = require("../helpers/generateGrid");
-var serverStatus = 'IDLE'
+const gridPositions = require('../helpers/gridpositions');
+var serverStatus = 'IDLE';
+var grid;
 
 router.get('/', async(req, res) => {
     //console.log('conexion a player2')
@@ -37,8 +39,8 @@ router.post('/rules', async(req, res) => {
         if(resp.data.status === 'SUCCESS'){
             serverStatus = 'SETTING UP';
             //TODO: grilla
-            const grill2 = generateGridData(rules.width, rules.height);
-            console.log('grilla p1', grill2)
+             grid = generateGridData(rules.width, rules.height);
+            console.log('grilla p2', grid)
             res.status(200).send('OK')
         }
         else{
@@ -53,31 +55,39 @@ router.post('/rules', async(req, res) => {
     
 })
 
+
 router.post('/ready', async(req, res) => {
 
+console.log('grid en ready', grid) //TODO: que llegue el grid de la ruta anterior para usar dentro del for
+
     try {
-        const { positions } = req.body;
+        let { positions } = req.body;
+        console.log('posiciones', positions)
+        
         const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
 
         let serverStatus = 'RIVAL WAITING'; // eliminar
 
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
-            //TODO: subir a la grilla las posiciones por cada uno de los elementos del array
-            for(let pos in positions){
-                gridPositions(grill, pos);
-            } 
-            console.log(grill)
 
-            fs.writeFileSync(reqPath, JSON.stringify(positions))
+             let grid1 = generateGridData();
+
+            for(let pos in positions){
+                console.log('cada posicion en el for', positions[pos])
+                gridPositions(grid1, positions[pos]);
+            } 
+            console.log('grilla + posiciones P2', grid1)
+
+            fs.writeFileSync(reqPath, JSON.stringify(positions));
             serverStatus = 'PROCESSING SHIP PLACEMENT';
             
-            await axios.post('localhost:3001/shot/:X/:Y', {
+            // TODO: no funciona este axios
+            await axios.post('http://localhost:3001/player1/shot/:X/:Y', {
                 msg: 'finished placement'
             })
 
-            res.status(200).json({
-                status: 'SUCCESS',
-            })
+            res.status(200).send('OK')
+
         } else{
             throw new Error('Server is not on the mood')
         }

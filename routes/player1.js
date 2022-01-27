@@ -6,7 +6,7 @@ const path = require('path');
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require('../helpers/gridpositions');
 let serverStatus = 'IDLE';
-let grill;
+let grid;
 
 
 router.get('/', async(req, res) => {
@@ -33,13 +33,13 @@ router.post('/rules', async(req, res) => {
     let rulesP2 = req.body.rules
     serverStatus = 'WAITING RULES'
     console.log('reglas p2', rulesP2)
-    console.log('status P1', serverStatus)
+    //console.log('status P1', serverStatus)
     try {
         if(Object.keys(rulesP2).length === 3 && serverStatus === 'WAITING RULES') {
             serverStatus = 'SETTING UP'
-            //TODO: subir grilla
-            grill = generateGridData(rulesP2.width, rulesP2.heigth);
-            console.log(grill1)
+
+            grid = generateGridData(rulesP2.width, rulesP2.heigth);
+            console.log('grilla p1', grid)
             res.status(200).json({
                 status: 'SUCCESS',
             })
@@ -67,9 +67,9 @@ router.post('/init', async(req, res) => {
             fs.writeFileSync(reqPath, JSON.stringify(positions))
             //TODO: subir a la grilla las posiciones por cada uno de los elementos del array
             for(let pos in positions){
-                gridPositions(grill, pos);
+                gridPositions(grid, positions[pos]);
             } 
-            console.log(grill)
+            console.log('grilla + posiciones P1', grid)
             serverStatus = 'WAITING RIVAL'
             res.status(200).send('OK')
         } else{

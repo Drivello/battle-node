@@ -1,5 +1,8 @@
 
 const gridPositions = (grid, ship) => {
+
+  console.log('ships', ship[0][1])
+  console.log('inside function gridpositions', grid)
 if (ship[0][0] === ship[1][0]){
     let distance = (Number(ship[1][1] - Number(ship[0][1])))
     for (let i = 0; i <= distance ; i++) {
