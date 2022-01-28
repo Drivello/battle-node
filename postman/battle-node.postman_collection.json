@@ -33,7 +33,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
+							"raw": "{\n    \"msg\": \"lets play\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -61,7 +61,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
+							"raw": "{\n\"rules\": {\n\"width\": 10,\n\"height\": 10,\n\"ships\": {\n\"patrol_boat\": 5,\n\"submarine\": 4,\n\"destroyer\": 3,\n\"carrier\": 1\n}\n}\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -115,8 +115,17 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "localhost:3001/player1/shot/X/Y",
+							"raw": "localhost:3001/player1/shot/A/5",
 							"host": [
 								"localhost"
 							],
@@ -124,8 +133,27 @@
 							"path": [
 								"player1",
 								"shot",
-								"X",
-								"Y"
+								"A",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "YIELD",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3001/player1/yield",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"player1",
+								"yield"
 							]
 						}
 					},
@@ -180,7 +208,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\"rules\": {\n\"width\": 26,\n\"height\": 26,\n\"ships\": {\n\"patrol_boat\": 5,\n\"submarine\": 4,\n\"destroyer\": 3,\n\"carrier\": 1\n}\n}\n}",
+							"raw": "{\n\"rules\": {\n\"width\": 10,\n\"height\": 10,\n\"ships\": {\n\"patrol_boat\": 5,\n\"submarine\": 4,\n\"destroyer\": 3,\n\"carrier\": 1\n}\n}\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -202,19 +230,77 @@
 					"response": []
 				},
 				{
-					"name": "New Request",
+					"name": "READY",
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"positions\": {\n        \"destroyer\":[\"A6\",\"D6\"],\n        \"patrol_boat\":[\"C3\",\"C7\"]\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "localhost:3002/player2/init",
+							"raw": "localhost:3002/player2/ready",
 							"host": [
 								"localhost"
 							],
 							"port": "3002",
 							"path": [
 								"player2",
-								"init"
+								"ready"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SHOT",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3002/player2/shot/A/5",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2",
+								"shot",
+								"A",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "YIELD",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3002/player2/yield",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"player2",
+								"yield"
 							]
 						}
 					},

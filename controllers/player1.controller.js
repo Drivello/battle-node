@@ -4,7 +4,6 @@ const path = require("path");
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require("../helpers/gridpositions");
 let serverStatus = "IDLE";
-let grill;
 let grid;
 
 
