@@ -7,6 +7,7 @@ const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require('../helpers/gridpositions');
 var serverStatus = 'IDLE';
 var grid;
+var grid1 = {};
 
 router.get('/', async(req, res) => {
     //console.log('conexion a player2')
@@ -70,13 +71,13 @@ console.log('grid en ready', grid) //TODO: que llegue el grid de la ruta anterio
 
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
 
-             let grid1 = generateGridData();
+              grid1 = generateGridData();
 
             for(let pos in positions){
-                console.log('cada posicion en el for', positions[pos])
-                gridPositions(grid1, positions[pos]);
+                //console.log('cada posicion en el for', positions[pos])
+                positionsFinal['positions'] = gridPositions(grid1, positions[pos]);
             } 
-            console.log('grilla + posiciones P2', grid1)
+            console.log('grilla + posiciones P2', grid1);
 
             fs.writeFileSync(reqPath, JSON.stringify(positions));
             serverStatus = 'PROCESSING SHIP PLACEMENT';
@@ -115,8 +116,14 @@ console.log('grid en ready', grid) //TODO: que llegue el grid de la ruta anterio
     
 // })
 
-router.post('/shot/X/Y', async(req, res) => {
-    const { positions } = req.body;
+router.post('/shot/:X/:Y', async(req, res) => {
+    
+    const shot = req.body.shot;
+    console.log('Posiciones recibidas del Player API:', shot)
+
+    //TODO: buscar si las posiciones coinciden en su grilla y responder el estado de barcos
+    console.log(grid1)
+    res.send('holii')
 
 })
 

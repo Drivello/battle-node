@@ -112,7 +112,7 @@ router.post('/shot/:X/:Y', async(req, res) => {
         // console.log(JSON.parse(data));
 
         //TODO: enviar las coordenadas positionShot al Rival
-        await axios.post("localhost:3002/player2/shot/:X/:Y", {
+        await axios.post("http://localhost:3002/player2/shot/:X/:Y", {
             shot: positionShot
         })
 
