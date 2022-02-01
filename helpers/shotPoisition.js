@@ -1,33 +1,30 @@
-function shotRival(positionsGrid, shot, ships){
+function shotPositions(positionsGrid, shot){
+  
+  shot = shot.split(); // ["A5"]
 
     let ships = {
-        destroyer: 6
-        // todos los barcos con cant de pos
+        destroyer: 4,
+        //destroyer1 ++
+        // patrol_boat2 ++  // si llega a 2 es que lo derribo
       }
     
-    let msg;
+    let letra = shot[0][0];
+    let numero = shot[0][1];
 
-    for(let i in positionsGrid){
-        let letra = shot[0][0];
-        let number = shot[0][1];
+    let barco = positionsGrid[letra][+numero]; // ej "destroyer1"
 
-        if(letra === i){
-          //console.log(positionsGrid[i])
-          const existe = positionsGrid[i].find(el => el === shot)
-          
-          if(existe) {
-              // restar posicion a barco determinado
-              ships.destroyer-1
-              // reemplazar en la grilla por un 0?
+    if(barco){
+      // reemplazamos ese barco por una X ?  
 
-              // settear el msj
-              msg = 'Great, you hit your shot'
-          } else {
-            msg = 'You failed your shot'
-          }
-        }
-      }
+      !ships[barco] ? ships[barco] = 1 : ships[barco]++
+      console.log(ships, ships[barco])
 
-      return ships;
+      console.log('acertaste a tu adversario')
+    } else {
+      console.log('sigue intentando')
+    }
+   
+    return ships;
 }
 
+module.exports = shotPositions;

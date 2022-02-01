@@ -16,7 +16,9 @@ app1.set('port', process.env.PORT1 || 3050)
 app2.set('port', process.env.PORT2 || 3051)
 
 // static files
-app1.use(express.static(path.join(__dirname, 'public')));
+app1.use(express.static(path.join(__dirname, 'public/playerStart')));
+app2.use(express.static(path.join(__dirname, 'public/rivalPlayer')));
+
 
 // Middlewares
 app1.use(express.json());

@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require('../helpers/gridpositions');
+const shotPositions = require('../helpers/shotPoisition');
 var serverStatus = 'IDLE';
 var grid;
 var grid1 = {};
@@ -57,7 +58,7 @@ const getRivalApi = (req, res) => {
 
     try {
         let { positions } = req.body;
-        console.log('posiciones', positions)
+        //console.log('POSICIONES', positions)
         
         const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
 
@@ -67,13 +68,14 @@ const getRivalApi = (req, res) => {
 
               grid1 = generateGridData();
 
-            for(let pos in positions){
-                //console.log('cada posicion en el for', positions[pos])
-                positionsFinal['positions'] = gridPositions(grid1, positions[pos]);
-            } 
-            console.log('grilla + posiciones P2', grid1);
+            // for(let pos in positions){
+            //     //console.log('cada posicion en el for', positions[pos])
+            //      gridPositions(grid1, positions[pos], positions.ships);
+            // } 
+            // console.log('grilla + posiciones P2', grid1);
+            gridPositions(grid1, positions);
 
-            fs.writeFileSync(reqPath, JSON.stringify(positions));
+            fs.writeFileSync(reqPath, JSON.stringify(grid1));
             serverStatus = 'PROCESSING SHIP PLACEMENT';
             
             // TODO: no funciona este axios
@@ -114,8 +116,14 @@ const getRivalApi = (req, res) => {
     const shot = req.body.shot;
     console.log('Posiciones recibidas del Player API:', shot)
 
+    const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
+    const data = fs.readFileSync(reqPath, 'utf8');
+    //console.log('DATA del PLAYER 2', JSON.parse(data));
+
+    shotPositions(JSON.parse(data), shot);
+
     //TODO: buscar si las posiciones coinciden en su grilla y responder el estado de barcos
-    console.log(grid1)
+    // shotPositions(data, shot);
     res.send('holii')
   };
   

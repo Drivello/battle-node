@@ -54,18 +54,23 @@ const postRules = async (req, res) => {
 const postInit = async (req, res) => {
   try {
     const { positions } = req.body;
+    console.log('positions p1', positions)
     const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
 
      serverStatus = 'RIVAL WAITING'; //eliminar
     
     if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
         serverStatus = 'PROCESSING PLACEMENT'
-        fs.writeFileSync(reqPath, JSON.stringify(positions))
+        // fs.writeFileSync(reqPath, JSON.stringify(positions))
         //TODO: subir a la grilla las posiciones por cada uno de los elementos del array
-        for(let pos in positions){
-            gridPositions(grid, positions[pos]);
-        } 
-        console.log('grilla + posiciones P1', grid)
+        grid = generateGridData();
+
+        let finalGrid = gridPositions(grid, positions);
+        console.log(finalGrid)
+
+        // console.log('grilla + posiciones PLAYER1', grid)
+        fs.writeFileSync(reqPath, JSON.stringify(grid))
+
         serverStatus = 'WAITING RIVAL'
         res.status(200).send('OK')
     } else{
@@ -101,9 +106,9 @@ const postShot = async (req, res) => {
 
   try {
       //
-      // const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
-      // const data = fs.readFileSync(reqPath, 'utf8');
-      // console.log(JSON.parse(data));
+      const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+      const data = fs.readFileSync(reqPath, 'utf8');
+      //onsole.log('DATA del PLAYER 1', JSON.parse(data));
 
       //TODO: enviar las coordenadas positionShot al Rival
       await axios.post("http://localhost:3002/player2/shot/:X/:Y", {
@@ -119,6 +124,7 @@ const postShot = async (req, res) => {
 
 const postYield = async (req, res) => {
   serverStatus = "IDLE";
+  res.send('Finish game')
 };
 
 module.exports = {
