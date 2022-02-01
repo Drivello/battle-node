@@ -1,40 +1,69 @@
-function shotPositions(positionsGrid, shot, rules = {
+const fs = require('fs');
+const path = require('path');
+
+const reqPath1 = path.join(__dirname, '../uploads/positionP1.txt');
+const reqPath2 = path.join(__dirname, '../uploads/positionP2.txt');
+
+const count1 = path.join(__dirname, '../uploads/count1.txt');
+const count2 = path.join(__dirname, '../uploads/count2.txt');
+
+function shotPositions(positionsGrid, shot, player, rules = {
   patrol_boat: 2,
   submarine: 3,
   destroyer: 4,
   carrier: 5,
   }){
-  // recibir reglas de cantidad de espacios que ocupa cada barco
-  // cambiar en la grilla por una X si encuentra el barco + guardar grilla
-  // tener un contador
-  // retornar mensajes correspondientes: acerto, no acerto, acerto y se hundio el barco
-  
-  shot = shot.split(); // ["A5"]
-
-  // Contador
-    let ships = {
-        destroyer1: 4,  // le acerto 4 veces a ese mismo barco
-      }
     
-    let letra = shot[0][0];
-    let numero = shot[0][1];
+    // leemos contador
+    let counter1 = JSON.parse(fs.readFileSync(count1, 'utf8'))
+    let counter2 = JSON.parse(fs.readFileSync(count2, 'utf8'));
+    
+    console.log(counter1);
+    
+    // Modificamos el contador
+    let letra = shot.replace(/[0-9]/g,"")
+    let numero = shot.replace(/[A-Za-z.]/g, "")
+    let alternativa;
+    let pathPlayer;
+    let barco = positionsGrid[letra][numero];
 
-    let barco = positionsGrid[letra][+numero]; // ej "destroyer1"
+    player === "Player 1" ? alternativa = counter1 : alternativa = counter2
+    player === "Player 1" ? pathPlayer = count1 : pathPlayer = count2
+    
+    
+    console.log("barco :", barco)
+    if( barco === 0 || barco === 'X' ) {
+      console.log('Fallaste malo')
+    }else{
 
-    if(barco !== 0 && barco !== 'X'){
-      positionsGrid[letra][+numero] = 'X';
-      
-      !ships[barco] ? ships[barco] = 1 : ships[barco]++
-      console.log(ships)
+      if(alternativa[barco]){
 
-      console.log('acertaste a tu adversario')
-      console.log(positionsGrid);
-
-    } else {
-      console.log('sigue intentando')
+        let barcoName = barco.replace(/[0-9]/g,""); 
+        
+        alternativa[barco] = ++alternativa[barco]
+        
+        if( alternativa[barco] === rules[barcoName] ){
+          console.log('Destruiste el Barco')
+        }
+        console.log('Le pegaste bro')
+      }else{
+        alternativa[barco] = 1 
+      }
     }
-   
-    return ships;
+    
+    console.log("counter1: ",counter1)
+    console.log("alternativa: ", alternativa)
+    fs.writeFileSync(pathPlayer, JSON.stringify(alternativa));
+    positionsGrid[letra][+numero] = 'X';
+    console.log(positionsGrid);
+
+    if(player === "Player 1"){
+      fs.writeFileSync(reqPath2, JSON.stringify(positionsGrid));
+    } else {
+       fs.writeFileSync(reqPath1, JSON.stringify(positionsGrid));
+    }
+
+
 }
 
 module.exports = shotPositions;

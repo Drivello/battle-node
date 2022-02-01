@@ -120,10 +120,8 @@ const getRivalApi = (req, res) => {
     const data = fs.readFileSync(reqPath, 'utf8');
     //console.log('DATA del PLAYER 2', JSON.parse(data));
 
-    shotPositions(JSON.parse(data), shot);
+    shotPositions(JSON.parse(data), shot, "Plaasda");
 
-    //TODO: buscar si las posiciones coinciden en su grilla y responder el estado de barcos
-    // shotPositions(data, shot);
     res.send('holii')
   };
   
