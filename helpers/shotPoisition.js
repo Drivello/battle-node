@@ -20,7 +20,6 @@ function shotPositions(positionsGrid, shot, player, rules = {
     
     console.log(counter1);
     
-    // Modificamos el contador
     let letra = shot.replace(/[0-9]/g,"")
     let numero = shot.replace(/[A-Za-z.]/g, "")
     let alternativa;
@@ -33,7 +32,6 @@ function shotPositions(positionsGrid, shot, player, rules = {
     
     console.log("barco :", barco)
     if( barco === 0 || barco === 'X' ) {
-      // res.sendStatus(200).send('Fallaste malo')
       return 'You failed'
     }else{
 
@@ -44,10 +42,8 @@ function shotPositions(positionsGrid, shot, player, rules = {
         alternativa[barco] = ++alternativa[barco]
         
         if( alternativa[barco] === rules[barcoName] ){
-          // res.sendStatus(200).send('Destruiste el Barco')
           return 'You destroyed the ship'
         }
-        // res.sendStatus(200).send('Le pegaste bro')
         return 'You hit a ship'
       }else{
         alternativa[barco] = 1 
@@ -65,8 +61,6 @@ function shotPositions(positionsGrid, shot, player, rules = {
     } else {
        fs.writeFileSync(reqPath1, JSON.stringify(positionsGrid));
     }
-
-
 }
 
 module.exports = shotPositions;

@@ -13,12 +13,14 @@ const getPlayerApi = (req, res) => {
 
 const postChallenge = async (req, res) => {
   try{
-    
+    const io = req.app.get('socketio') 
     const resp = await axios.post('http://localhost:3002/player2/challenge', {
         msg: "lets play"
     })
 
-    io.sockets.emit('welcome', 'hi player 1');
+    io.sockets.emit('eventsPlayer1', {
+        msg: 'You send invitation to Player 2'
+    });
 
     if(resp.data.status === "SUCCESS"){
         serverStatus = 'WAITING RULES'
@@ -43,8 +45,7 @@ const postRules = async (req, res) => {
             grid = generateGridData(rulesP2.width, rulesP2.heigth);
             console.log('grilla p1', grid)
 
-            io.sockets.emit('welcome', {msg: 'Has creado exitosamente tu grilla'})
-
+            io.sockets.emit('eventsPlayer1', {msg: 'Your grid has been created successfully!'})
 
             res.status(200).json({
                 status: 'SUCCESS',
@@ -76,8 +77,8 @@ const postInit = async (req, res) => {
         grid = generateGridData();
 
         let finalGrid = gridPositions(grid, positions);
-        io.sockets.emit('welcome', {
-            msg: `Has subido las siguientes posiciones ${JSON.stringify(positions)} a tu grilla`
+        io.sockets.emit('eventsPlayer1', {
+            msg: `You have uploaded the positions ${JSON.stringify(positions)} to your grid`
         })
         console.log('grilla final p1', finalGrid)
 
@@ -121,8 +122,8 @@ const postShot = async (req, res) => {
                 const data = fs.readFileSync(reqPath, 'utf8');
                 const response = shotPositions(JSON.parse(data), shot, "Player 1");
 
-                io.sockets.emit('welcome', {
-                    msg: `You got shot at the coordinates ${shot}`
+                io.sockets.emit('eventsPlayer1', {
+                    msg: `Your opponent sent a shot to the coordinates ${shot}`
                 })
                 res.json(response);
             }
@@ -131,8 +132,8 @@ const postShot = async (req, res) => {
             const {data} = await axios.post(`http://localhost:3002/player2/shot/`,{
                 shot: X+Y
             })
-            io.sockets.emit('welcome', {
-                msg: data
+            io.sockets.emit('eventsPlayer1', {
+                msg: `${data} at coordinates ${X+Y}`
             })
             res.sendStatus(200)
         }
@@ -144,6 +145,12 @@ const postShot = async (req, res) => {
 
 const postYield = async (req, res) => {
   serverStatus = "IDLE";
+
+  const io = req.app.get('socketio') 
+  io.sockets.emit('eventsPlayer1', {
+    msg: 'You surrender :( '
+})
+
   res.send('Finish game')
 };
 

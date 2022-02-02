@@ -14,12 +14,14 @@ const getRivalApi = (req, res) => {
   
   const postChallenge = async (req, res) => {
     const io = req.app.get('socketio') 
-    io.sockets.emit('welcome', 'acepto jugar');
+    
 
     try{
-      console.log('status inicial', serverStatus)
         if(req.body.msg === 'lets play' && serverStatus === 'IDLE'){
-            serverStatus = 'THINKING RULES'
+            serverStatus = 'THINKING RULES';
+
+            io.sockets.emit('eventsRivalPlayer', 'I accept challenge!');
+
             res.status(200).json({
                 status: 'SUCCESS',
             })
@@ -44,8 +46,8 @@ const getRivalApi = (req, res) => {
             //TODO: grilla
              grid = generateGridData(rules.width, rules.height);
         
-            io.sockets.emit('welcome', {
-              msg: `Has enviado las reglas ${JSON.stringify(rules)} a tu oponente`
+            io.sockets.emit('eventsRivalPlayer', {
+              msg: `You sent the rules ${JSON.stringify(rules)} to your oponent`
             });
 
             console.log('grilla p2', grid)
@@ -63,11 +65,11 @@ const getRivalApi = (req, res) => {
   };
   
   const postReady = async (req, res) => {
-    console.log('grid en ready', grid) //TODO: que llegue el grid de la ruta anterior para usar dentro del for
-    const io = req.app.get('socketio') 
-
+    console.log('grid en ready', grid);
+    
     try {
-        let { positions } = req.body;
+      const io = req.app.get('socketio');
+      let { positions } = req.body;
         
         const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
 
@@ -75,16 +77,10 @@ const getRivalApi = (req, res) => {
 
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
 
-              grid1 = generateGridData();
-
-            // for(let pos in positions){
-            //     //console.log('cada posicion en el for', positions[pos])
-            //      gridPositions(grid1, positions[pos], positions.ships);
-            // } 
-            // console.log('grilla + posiciones P2', grid1);
+            grid1 = generateGridData();
             gridPositions(grid1, positions);
-            io.sockets.emit('welcome', {
-              msg: `Has subido las siguientes posiciones ${JSON.stringify(positions)} a tu grilla`
+            io.sockets.emit('eventsRivalPlayer', {
+              msg: `You have uploaded the positions ${JSON.stringify(positions)} to your grid`
           })
 
             fs.writeFileSync(reqPath, JSON.stringify(grid1));
@@ -109,7 +105,6 @@ const getRivalApi = (req, res) => {
 
       const { X, Y} = req.params;
       if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
-        console.log('player 2 analizando posiciones')
 
           const {shot} = req.body
           if(shot){
@@ -118,20 +113,18 @@ const getRivalApi = (req, res) => {
               const data = fs.readFileSync(reqPath, 'utf8');
               const response = shotPositions(JSON.parse(data), shot, "Player 2");
 
-              io.sockets.emit('welcome', {
-                msg: `You got shot at the coordinates ${shot}`
+              io.sockets.emit('eventsRivalPlayer', {
+                msg: `Your opponent sent a shot to the coordinates ${shot}`
             })
               res.json(response)
           }
       }else{
           // estoy atacando
-          console.log('player 2 atacando')
           const {data} = await axios.post(`http://localhost:3001/player1/shot/`,{
               shot: X+Y
           })
-          console.log('RESPUESTA Q RECIBO DEL P1', data)
-          io.sockets.emit('welcome', {
-            msg: data
+          io.sockets.emit('eventsRivalPlayer', {
+            msg: `${data} at coordinates ${X+Y}`
         })
           res.sendStatus(200)
       }
@@ -144,6 +137,12 @@ const getRivalApi = (req, res) => {
   
   const postYield = async (req, res) => {
     serverStatus = 'IDLE';
+
+    const io = req.app.get('socketio') 
+    io.sockets.emit('eventsRivalPlayer', {
+      msg: 'You surrender :( '
+  })
+
     res.send('Finish game')
     
   };
