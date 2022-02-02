@@ -22,37 +22,34 @@ function shotPositions(positionsGrid, shot, player, rules = {
     
     let letra = shot.replace(/[0-9]/g,"")
     let numero = shot.replace(/[A-Za-z.]/g, "")
-    let alternativa;
+    let swap;
     let pathPlayer;
     let barco = positionsGrid[letra][numero];
 
-    player === "Player 1" ? alternativa = counter1 : alternativa = counter2
+    player === "Player 1" ? swap = counter1 : swap = counter2
     player === "Player 1" ? pathPlayer = count1 : pathPlayer = count2
     
     
-    console.log("barco :", barco)
     if( barco === 0 || barco === 'X' ) {
-      return 'You failed'
+      return 'You hit water'
     }else{
 
-      if(alternativa[barco]){
+      if(swap[barco]){
 
         let barcoName = barco.replace(/[0-9]/g,""); 
         
-        alternativa[barco] = ++alternativa[barco]
+        swap[barco] = ++swap[barco]
         
-        if( alternativa[barco] === rules[barcoName] ){
+        if( swap[barco] === rules[barcoName] ){
           return 'You destroyed the ship'
         }
         return 'You hit a ship'
       }else{
-        alternativa[barco] = 1 
+        swap[barco] = 1 
       }
     }
     
-    console.log("counter1: ",counter1)
-    console.log("alternativa: ", alternativa)
-    fs.writeFileSync(pathPlayer, JSON.stringify(alternativa));
+    fs.writeFileSync(pathPlayer, JSON.stringify(swap));
     positionsGrid[letra][+numero] = 'X';
     console.log(positionsGrid);
 

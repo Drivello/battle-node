@@ -114,8 +114,7 @@ const postShot = async (req, res) => {
 
         if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
             const {shot} = req.body
-            console.log('shot p1', shot);
-            console.log('param p1', req.params)
+            
             if(shot){
                 // soy atacado
                 const reqPath = path.join(__dirname, '../uploads/positionP1.txt');

@@ -29,7 +29,6 @@ const gridPositions = (grid,ships,
   // trabajar con una variable ships que contiene lo enviado por postman y una rules que contiene los maximos permitidos por las reglas
 
   try {
-    console.log("barcos recibidos", ships);
 
     let cantPatrolBoat = ships.patrol_boat[0][0] && ships.patrol_boat.length;
     let cantSubmarine = ships.submarine[0][0] && ships.submarine.length;
