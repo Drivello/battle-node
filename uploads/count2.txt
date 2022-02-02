@@ -1,1 +1,1 @@
-{"carrier1":1}
+{"carrier1":2,"patrol_boat1":2}

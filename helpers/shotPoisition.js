@@ -33,7 +33,8 @@ function shotPositions(positionsGrid, shot, player, rules = {
     
     console.log("barco :", barco)
     if( barco === 0 || barco === 'X' ) {
-      console.log('Fallaste malo')
+      // res.sendStatus(200).send('Fallaste malo')
+      return 'You failed'
     }else{
 
       if(alternativa[barco]){
@@ -43,9 +44,11 @@ function shotPositions(positionsGrid, shot, player, rules = {
         alternativa[barco] = ++alternativa[barco]
         
         if( alternativa[barco] === rules[barcoName] ){
-          console.log('Destruiste el Barco')
+          // res.sendStatus(200).send('Destruiste el Barco')
+          return 'You destroyed the ship'
         }
-        console.log('Le pegaste bro')
+        // res.sendStatus(200).send('Le pegaste bro')
+        return 'You hit a ship'
       }else{
         alternativa[barco] = 1 
       }

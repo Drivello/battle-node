@@ -13,7 +13,11 @@ const getRivalApi = (req, res) => {
   };
   
   const postChallenge = async (req, res) => {
+    const io = req.app.get('socketio') 
+    io.sockets.emit('welcome', 'acepto jugar');
+
     try{
+      console.log('status inicial', serverStatus)
         if(req.body.msg === 'lets play' && serverStatus === 'IDLE'){
             serverStatus = 'THINKING RULES'
             res.status(200).json({
@@ -29,7 +33,7 @@ const getRivalApi = (req, res) => {
   
   const postRules = async (req, res) => {
     const { rules } = req.body;
-
+    const io = req.app.get('socketio') 
     try{
         const resp = await axios.post('http://localhost:3001/player1/rules', {
            rules
@@ -39,6 +43,11 @@ const getRivalApi = (req, res) => {
             serverStatus = 'SETTING UP';
             //TODO: grilla
              grid = generateGridData(rules.width, rules.height);
+        
+            io.sockets.emit('welcome', {
+              msg: `Has enviado las reglas ${JSON.stringify(rules)} a tu oponente`
+            });
+
             console.log('grilla p2', grid)
             res.status(200).send('OK')
         }
@@ -55,10 +64,10 @@ const getRivalApi = (req, res) => {
   
   const postReady = async (req, res) => {
     console.log('grid en ready', grid) //TODO: que llegue el grid de la ruta anterior para usar dentro del for
+    const io = req.app.get('socketio') 
 
     try {
         let { positions } = req.body;
-        //console.log('POSICIONES', positions)
         
         const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
 
@@ -74,14 +83,13 @@ const getRivalApi = (req, res) => {
             // } 
             // console.log('grilla + posiciones P2', grid1);
             gridPositions(grid1, positions);
+            io.sockets.emit('welcome', {
+              msg: `Has subido las siguientes posiciones ${JSON.stringify(positions)} a tu grilla`
+          })
 
             fs.writeFileSync(reqPath, JSON.stringify(grid1));
             serverStatus = 'PROCESSING SHIP PLACEMENT';
             
-            // TODO: no funciona este axios
-            await axios.post('http://localhost:3001/player1/shot/:X/:Y', {
-                msg: 'finished placement'
-            })
 
             res.status(200).send('OK')
 
@@ -94,35 +102,44 @@ const getRivalApi = (req, res) => {
     }
   };
 
-  // router.post('/ready', async(req, res) => {
-
-//     try{
-//         const {message} = req.body;
-//         if(message === 'ready'){
-//             serverStatus = 'SENDING SHOT'
-//             res.status(200).json({
-//                 status: 'SENDING SHOT',
-//             })
-//         }
-//         res.status(200).send('OK');
-//     } catch(error){
-//         console.log(error)
-//     }
-    
-// })
-
-  
   const postShot = async (req, res) => {
-    const shot = req.body.shot;
-    console.log('Posiciones recibidas del Player API:', shot)
 
-    const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
-    const data = fs.readFileSync(reqPath, 'utf8');
-    //console.log('DATA del PLAYER 2', JSON.parse(data));
+    try {
+      const io = req.app.get('socketio') 
 
-    shotPositions(JSON.parse(data), shot, "Plaasda");
+      const { X, Y} = req.params;
+      if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
+        console.log('player 2 analizando posiciones')
 
-    res.send('holii')
+          const {shot} = req.body
+          if(shot){
+              // soy atacado
+              const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
+              const data = fs.readFileSync(reqPath, 'utf8');
+              const response = shotPositions(JSON.parse(data), shot, "Player 2");
+
+              io.sockets.emit('welcome', {
+                msg: `You got shot at the coordinates ${shot}`
+            })
+              res.json(response)
+          }
+      }else{
+          // estoy atacando
+          console.log('player 2 atacando')
+          const {data} = await axios.post(`http://localhost:3001/player1/shot/`,{
+              shot: X+Y
+          })
+          console.log('RESPUESTA Q RECIBO DEL P1', data)
+          io.sockets.emit('welcome', {
+            msg: data
+        })
+          res.sendStatus(200)
+      }
+      
+  } catch (error) {
+      console.log(error.message)
+  }
+
   };
   
   const postYield = async (req, res) => {

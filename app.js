@@ -26,9 +26,7 @@ app2.use(express.json());
 app1.use(express.urlencoded({ extended: false }));
 app2.use(express.urlencoded({ extended: false }));
 
-// Routes
-app1.use('/player1', player1routes)
-app2.use('/player2', player2routes)
+
 
 // Instances
 const server1 = app1.listen(app1.get('port'), () => { console.log(`Started server1 on PORT ${app1.get('port')}`); }); 
@@ -38,9 +36,22 @@ const server2 = app2.listen(app2.get('port'), () => { console.log(`Started serve
 const io1 = socketio1(server1);
 const io2 = socketio2(server2);
 
+app1.set('socketio', io1);
+app2.set('socketio', io2);
+
 io1.on('connection', (socket) => {
     console.log('new connection', socket.id)
+    //socket.emit('welcome', {msg: 'hello player1'})
 })
+
+io2.on('connection', (socket) => {
+    console.log('new connection', socket.id)
+    // socket.emit('welcome', {msg: 'hello player2'})
+})
+
+// Routes
+app1.use('/player1', player1routes)
+app2.use('/player2', player2routes)
 
 module.exports = {
     app1,

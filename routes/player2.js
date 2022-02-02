@@ -18,6 +18,7 @@ router.post('/rules', postRules);
 router.post('/ready', postReady);
 
 router.post('/shot/:X/:Y', postShot);
+router.post('/shot/', postShot);
 
 router.post('/yield', postYield);
 

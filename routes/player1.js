@@ -6,7 +6,7 @@ const {
     postRules,
     postInit,
     postShot,
-    postYield
+    postYield,
  } = require('../controllers/player1.controller')
 
 
@@ -23,6 +23,7 @@ router.post('/init', postInit);
 // router.post('/ready', ...)
 
 router.post('/shot/:X/:Y', postShot)
+router.post('/shot/', postShot)
 
 router.post('/yield', postYield);
 
