@@ -58,6 +58,13 @@ function shotPositions(positionsGrid, shot, player, rules = {
     } else {
        fs.writeFileSync(reqPath1, JSON.stringify(positionsGrid));
     }
+
+
+    // Ver si la cantidad de elementos del contador es = a la cantidad de barcos de las rules
+      // ejemplo --> contador=15 elementos   y el total barcos de las reglas es 20
+      // la grilla --> no sirve porque hay que recorrer para contar elementos / poco dinamico
+    // si la cantidad es igual Y CADA barco del contador tiene la misma cantidad de posiciones que las rules de esta fn
+    // el jugador gano la partida
 }
 
 module.exports = shotPositions;

@@ -4,6 +4,7 @@ const path = require("path");
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require("../helpers/gridpositions");
 const shotPositions = require('../helpers/shotPoisition');
+const AppError = require('../Error/appError');
 let serverStatus = "IDLE";
 let grid;
 
