@@ -80,7 +80,7 @@ const gridPositions = (grid,ships,
               coordenadas[1][1] - Number(coordenadas[0][1])
             );
             checkSize(key, distance);
-            for (let i = 0; i <= distance; i++) {
+           for (let i = 0; i <= distance; i++) {
               let letra = coordenadas[0][0];
               let index = Number(coordenadas[0][1]) - 1 + i;
               if (grid[letra][index] !== 0) {
@@ -92,7 +92,6 @@ const gridPositions = (grid,ships,
         }
       }
     }
-    console.log(grid);
     return grid;
   } catch (error) {
     console.log(error.message);

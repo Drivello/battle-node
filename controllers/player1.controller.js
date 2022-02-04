@@ -36,7 +36,6 @@ const postChallenge = async (req, res) => {
 const postRules = async (req, res) => {
   let rulesP2 = req.body.rules
     serverStatus = 'WAITING RULES'
-    // console.log('reglas p2', rulesP2)
     
     const io = req.app.get('socketio') 
     try {
@@ -44,7 +43,6 @@ const postRules = async (req, res) => {
             serverStatus = 'SETTING UP'
 
             grid = generateGridData(rulesP2.width, rulesP2.heigth);
-            console.log('grilla p1', grid)
 
             io.sockets.emit('eventsPlayer1', {msg: 'Your grid has been created successfully!'})
 
@@ -63,11 +61,10 @@ const postRules = async (req, res) => {
 
 const postInit = async (req, res) => {
   try {
-    const { positions } = req.body;
-    console.log('positions p1', positions)
-    const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+      const io = req.app.get('socketio') 
+      const { positions } = req.body;
+      const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
 
-    const io = req.app.get('socketio') 
 
 
      serverStatus = 'RIVAL WAITING'; //eliminar
@@ -78,13 +75,18 @@ const postInit = async (req, res) => {
         grid = generateGridData();
 
         let finalGrid = gridPositions(grid, positions);
+        console.log(finalGrid)
         io.sockets.emit('eventsPlayer1', {
             msg: `You have uploaded the positions ${JSON.stringify(positions)} to your grid`
         })
         console.log('grilla final p1', finalGrid)
 
-        // console.log('grilla + posiciones PLAYER1', grid)
-        fs.writeFileSync(reqPath, JSON.stringify(grid))
+        const saveRulesGrid = {
+            grid: finalGrid, 
+            barcosTotales: positions
+          };
+
+        fs.writeFileSync(reqPath, JSON.stringify(saveRulesGrid))
 
         serverStatus = 'WAITING RIVAL'
         res.status(200).send('OK')
@@ -98,16 +100,6 @@ const postInit = async (req, res) => {
 };
 
 const postShot = async (req, res) => {
-    // ------ Si yo golpeo ---------- Los params son verdaderos y validos
-    // saco las coordenadas de los params 
-    // hago un llamado al rival con las coordenadas enviadas por body y el rival cambia su estado a preparing for shot
-    // cambio mi estado a waiting for shot 
-    // recibo la respuesta y la muestro
-    // ------ Si me golpean --------- El body es verdadero y valido
-    // recibo las coordenadas por body
-    // calculo si fui golpeado o no 
-    // cambio mi estado a preparing shot
-    // respondo si golpeo o no
 
     try {
         const io = req.app.get('socketio') 
@@ -116,11 +108,13 @@ const postShot = async (req, res) => {
         if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
             const {shot} = req.body
             
+            // ESTE PRIMER IF ESTA BIEN
             if(shot){
                 // soy atacado
                 const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
-                const data = fs.readFileSync(reqPath, 'utf8');
-                const response = shotPositions(JSON.parse(data), shot, "Player 1");
+                let data = fs.readFileSync(reqPath, 'utf8');
+                
+                let response = shotPositions(JSON.parse(data), shot, "Player 1");
 
                 io.sockets.emit('eventsPlayer1', {
                     msg: `Your opponent sent a shot to the coordinates ${shot}`
@@ -129,7 +123,7 @@ const postShot = async (req, res) => {
             }
         }else{
             // estoy atacando
-            const {data} = await axios.post(`http://localhost:3002/player2/shot/`,{
+            let {data} = await axios.post(`http://localhost:3002/player2/shot/`,{
                 shot: X+Y
             })
             io.sockets.emit('eventsPlayer1', {

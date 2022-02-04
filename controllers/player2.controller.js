@@ -4,68 +4,109 @@ const path = require('path');
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require('../helpers/gridpositions');
 const shotPositions = require('../helpers/shotPoisition');
+
+const AppError = require('../Error/appError');
+const catchAsync = require('../helpers/catchAsync');
+
 var serverStatus = 'IDLE';
 var grid;
 var grid1 = {};
+
 
 const getRivalApi = (req, res) => {
     res.send('hello player 2')
   };
   
-  const postChallenge = async (req, res) => {
-    const io = req.app.get('socketio') 
+const postChallenge = catchAsync(async (req, res, next) => { //catch retorna funcion anonima donde le pasa req, res..
+    const io = req.app.get('socketio');
+
+    if(req.body.msg === 'lets play' && serverStatus === 'IDLE'){
+        serverStatus = 'THINKING RULES';
+
+        io.sockets.emit('eventsRivalPlayer', 'I accept challenge!');
+
+        res.status(200).json({
+            status: 'SUCCESS',
+        })
+    }else{
+        //throw new Error('Server not prepared or msg incorrect')
+        return next(new AppError('Server not prepared or msg incorrect', 404)); //TODO: cambiar x codigo correspondiente
+    }
     
 
-    try{
-        if(req.body.msg === 'lets play' && serverStatus === 'IDLE'){
-            serverStatus = 'THINKING RULES';
+  //   try{
+  //       if(req.body.msg === 'lets play' && serverStatus === 'IDLE'){
+  //           serverStatus = 'THINKING RULES';
 
-            io.sockets.emit('eventsRivalPlayer', 'I accept challenge!');
+  //           io.sockets.emit('eventsRivalPlayer', 'I accept challenge!');
 
-            res.status(200).json({
-                status: 'SUCCESS',
-            })
-        }else{
-            throw new Error('Server not prepared or msg incorrect')
-        }
-   } catch(error){
-       console.log(error)
-   }
-  };
+  //           res.status(200).json({
+  //               status: 'SUCCESS',
+  //           })
+  //       }else{
+  //           throw new Error('Server not prepared or msg incorrect')
+  //       }
+  //  } catch(error){
+  //      console.log(error)
+  //  }
+  });
   
   const postRules = async (req, res) => {
     const { rules } = req.body;
-    const io = req.app.get('socketio') 
-    try{
-        const resp = await axios.post('http://localhost:3001/player1/rules', {
-           rules
-        })
+    const io = req.app.get('socketio');
+    const reqPathRules = path.join(__dirname, '../uploads/rules.txt');
 
-        if(resp.data.status === 'SUCCESS'){
-            serverStatus = 'SETTING UP';
-            //TODO: grilla
-             grid = generateGridData(rules.width, rules.height);
+    fs.writeFileSync(reqPathRules, JSON.stringify(rules.ships));
+
+    const resp = await axios.post('http://localhost:3001/player1/rules', {
+             rules
+          })
+  
+          if(resp.data.status === 'SUCCESS'){
+              serverStatus = 'SETTING UP';
+              //TODO: grilla
+               grid = generateGridData(rules.width, rules.height);
+          
+              io.sockets.emit('eventsRivalPlayer', {
+                msg: `You sent the rules ${JSON.stringify(rules)} to your oponent`
+              });
+  
+              console.log('grilla p2', grid)
+              res.status(200).send('OK')
+          }
+          else{
+              throw new Error('Failed to deliver the rules')
+          }
+
+    // try{
+    //     const resp = await axios.post('http://localhost:3001/player1/rules', {
+    //        rules
+    //     })
+
+    //     if(resp.data.status === 'SUCCESS'){
+    //         serverStatus = 'SETTING UP';
+    //         //TODO: grilla
+    //          grid = generateGridData(rules.width, rules.height);
         
-            io.sockets.emit('eventsRivalPlayer', {
-              msg: `You sent the rules ${JSON.stringify(rules)} to your oponent`
-            });
+    //         io.sockets.emit('eventsRivalPlayer', {
+    //           msg: `You sent the rules ${JSON.stringify(rules)} to your oponent`
+    //         });
 
-            console.log('grilla p2', grid)
-            res.status(200).send('OK')
-        }
-        else{
-            throw new Error('Failed to deliver the rules')
-        }
+    //         console.log('grilla p2', grid)
+    //         res.status(200).send('OK')
+    //     }
+    //     else{
+    //         throw new Error('Failed to deliver the rules')
+    //     }
 
     
-    } catch(error){
-        console.log('error /rules p2', error.message)
-        res.status(404)
-    }
+    // } catch(error){
+    //     console.log('error /rules p2', error.message)
+    //     res.status(404)
+    // }
   };
   
   const postReady = async (req, res) => {
-    console.log('grid en ready', grid);
     
     try {
       const io = req.app.get('socketio');
@@ -78,12 +119,21 @@ const getRivalApi = (req, res) => {
         if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
 
             grid1 = generateGridData();
-            gridPositions(grid1, positions);
+            console.log("grid1 PLAYER 2: ", grid1, "Positions PLAYER 2: ",positions)
+            let finalGrid = gridPositions(grid1, positions);
+            console.log('GRID PLAYER2', grid1)
             io.sockets.emit('eventsRivalPlayer', {
               msg: `You have uploaded the positions ${JSON.stringify(positions)} to your grid`
           })
 
-            fs.writeFileSync(reqPath, JSON.stringify(grid1));
+          const saveRulesGrid = {
+            grid: finalGrid, 
+            barcosTotales: positions
+          };
+            // VER EN ESTA PARTE
+             fs.writeFileSync(reqPath, JSON.stringify(saveRulesGrid));
+
+            
             serverStatus = 'PROCESSING SHIP PLACEMENT';
             
 
@@ -103,24 +153,29 @@ const getRivalApi = (req, res) => {
     try {
       const io = req.app.get('socketio') 
 
+
       const { X, Y} = req.params;
+      
+      // ACA ESTA EL PROBLEMMM
       if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
 
           const {shot} = req.body
           if(shot){
               // soy atacado
               const reqPath = path.join(__dirname, '../uploads/positionP2.txt');
-              const data = fs.readFileSync(reqPath, 'utf8');
-              const response = shotPositions(JSON.parse(data), shot, "Player 2");
-
+              let data = fs.readFileSync(reqPath, 'utf8');
+              console.log("DATA P2",data) 
+              let response = shotPositions(JSON.parse(data), shot, "Player 2");
               io.sockets.emit('eventsRivalPlayer', {
                 msg: `Your opponent sent a shot to the coordinates ${shot}`
             })
-              res.json(response)
+              console.log('response player2 de la fn', response);
+            
+              return res.json(response)
           }
       }else{
           // estoy atacando
-          const {data} = await axios.post(`http://localhost:3001/player1/shot/`,{
+          let {data} = await axios.post(`http://localhost:3001/player1/shot/`,{
               shot: X+Y
           })
           io.sockets.emit('eventsRivalPlayer', {
@@ -141,10 +196,9 @@ const getRivalApi = (req, res) => {
     const io = req.app.get('socketio') 
     io.sockets.emit('eventsRivalPlayer', {
       msg: 'You surrender :( '
-  })
+    })
 
     res.send('Finish game')
-    
   };
   
   module.exports = {
