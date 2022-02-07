@@ -8,7 +8,7 @@ const gridPositions = (grid,ships,
 ) => {
   const checkSize = (key, distance) => {
     distance = distance < 0 ? distance * -1 : distance;
-    console.log(key, distance);
+    // console.log(key, distance);
 
     if (key === "patrol_boat" && distance !== 1) {
       throw new Error("patrol_boat de tamanio invalido");
@@ -24,7 +24,7 @@ const gridPositions = (grid,ships,
     }
   };
 
-  console.log("ships p2", ships);
+  // console.log("ships p2", ships);
 
   // trabajar con una variable ships que contiene lo enviado por postman y una rules que contiene los maximos permitidos por las reglas
 
@@ -56,12 +56,12 @@ const gridPositions = (grid,ships,
           indexArrayShips++
         ) {
           const coordenadas = element[indexArrayShips];
-          console.log("coordenadas", coordenadas);
+          // console.log("coordenadas", coordenadas);
           //Anotar en la grilla => coordenadas = ["B5", "B8"]
           let vertical = coordenadas[0][0] !== coordenadas[1][0];
           if (vertical) {
             let letterUnicode = coordenadas[0][0].charCodeAt(0); // to number  B --> 66
-            console.log(letterUnicode);
+            // console.log(letterUnicode);
             let distance =
               coordenadas[1][0].charCodeAt(0) - coordenadas[0][0].charCodeAt(0);
             checkSize(key, distance);
@@ -92,7 +92,7 @@ const gridPositions = (grid,ships,
         }
       }
     }
-    console.log(grid);
+    // console.log(grid);
     return grid;
   } catch (error) {
     console.log(error.message);

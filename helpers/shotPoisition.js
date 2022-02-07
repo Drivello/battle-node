@@ -18,7 +18,7 @@ function shotPositions(positionsGrid, shot, player, rules = {
     let counter1 = JSON.parse(fs.readFileSync(count1, 'utf8'))
     let counter2 = JSON.parse(fs.readFileSync(count2, 'utf8'));
     
-    console.log(counter1);
+    // console.log(counter1);
     
     let letra = shot.replace(/[0-9]/g,"")
     let numero = shot.replace(/[A-Za-z.]/g, "")
@@ -51,7 +51,7 @@ function shotPositions(positionsGrid, shot, player, rules = {
     
     fs.writeFileSync(pathPlayer, JSON.stringify(swap));
     positionsGrid[letra][+numero] = 'X';
-    console.log(positionsGrid);
+    // console.log(positionsGrid);
 
     if(player === "Player 1"){
       fs.writeFileSync(reqPath2, JSON.stringify(positionsGrid));

@@ -3,162 +3,224 @@ const fs = require("fs");
 const path = require("path");
 const generateGridData = require("../helpers/generateGrid");
 const gridPositions = require("../helpers/gridpositions");
-const shotPositions = require('../helpers/shotPoisition');
-const AppError = require('../Error/appError');
+const shotPositions = require("../helpers/shotPoisition");
+const AppError = require("../Error/appError");
 let serverStatus = "IDLE";
 let grid;
 
+const getLogTime = () => {
+    let now = new Date();
+    let addZeroIf = (data) => {
+        data = data.toString()
+        return data.length === 1 
+        ? `0${data}` 
+        : data
+    }
+    return `${addZeroIf(now.getHours())}:${addZeroIf(now.getMinutes())}:${addZeroIf(now.getSeconds())}`;
+};
+
+const sendEvent = (req, event) => {
+    const io1 = req.app.get("socketP1");
+    const io2 = req.app.get("socketP2");
+
+    if (event.player === "P1") {
+        io1.sockets.emit("eventsPlayer1", event);
+        io2.sockets.emit("eventsPlayer1", event);
+    } else {
+        io1.sockets.emit("eventsRivalPlayer", event);
+        io2.sockets.emit("eventsRivalPlayer", event);
+    }
+};
 const getPlayerApi = (req, res) => {
-    res.send("hello");
+    try {
+        sendEvent(req, { player: "P1", status: serverStatus });
+        res.send("OK");
+    } catch (error) {
+        res.send(error.message);
+    }
 };
 
 const postChallenge = async (req, res) => {
-  try{
-    const io = req.app.get('socketio') 
-    const resp = await axios.post('http://localhost:3002/player2/challenge', {
-        msg: "lets play"
-    })
+    try {
+        let hours = getLogTime();
+        sendEvent(req, {
+            player: "P1",
+            status: serverStatus,
+            msg: `${getLogTime()} - You've sent a challenge to Player 2.`,
+        });
+        const resp = await axios.post(
+            "http://localhost:3002/player2/challenge",
+            {
+                msg: "lets play",
+            }
+        );
 
-    io.sockets.emit('eventsPlayer1', {
-        msg: 'You send invitation to Player 2'
-    });
-
-    if(resp.data.status === "SUCCESS"){
-        serverStatus = 'WAITING RULES'
-        res.status(200).send('OK')
-    } 
-    
-} catch(error){
-    console.log(error)
-}
+        if (resp.data.status === "SUCCESS") {
+            serverStatus = "WAITING RULES";
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - Invitation accepted.`,
+            });
+            res.status(200).send("OK");
+        } else {
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - Your challenge was canceled due no response.`,
+            });
+            res.status(400).send("FAILED");
+        }
+    } catch (error) {
+        console.log("error on postChallangeP1");
+        console.log(error.message);
+    }
 };
 
 const postRules = async (req, res) => {
-  let rulesP2 = req.body.rules
-    serverStatus = 'WAITING RULES'
-    // console.log('reglas p2', rulesP2)
-    
-    const io = req.app.get('socketio') 
+    let rulesP2 = req.body.rules;
     try {
-        if(Object.keys(rulesP2).length === 3 && serverStatus === 'WAITING RULES') {
-            serverStatus = 'SETTING UP'
+        if (
+            Object.keys(rulesP2).length === 3 &&
+            serverStatus === "WAITING RULES"
+        ) {
+            serverStatus = "SETTING UP";
 
             grid = generateGridData(rulesP2.width, rulesP2.heigth);
-            console.log('grilla p1', grid)
+            // console.log('grilla p1', grid)
 
-            io.sockets.emit('eventsPlayer1', {msg: 'Your grid has been created successfully!'})
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - Rules recieved successfully!`,
+            });
+
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - Please position your boats.`,
+            });
 
             res.status(200).json({
-                status: 'SUCCESS',
-            })
-        }
-        else{
-            throw new Error('Rules incomplete')
+                status: "SUCCESS",
+            });
+        } else {
+            throw new Error("Rules incomplete");
         }
     } catch (error) {
-        console.log('error /rules p1', error.message)
-        res.status(404).send(error)
+        console.log("P1", error.message);
+        res.status(404).send(error);
     }
 };
 
 const postInit = async (req, res) => {
-  try {
-    const { positions } = req.body;
-    console.log('positions p1', positions)
-    const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
+    try {
+        const { positions } = req.body;
+        const reqPath = path.join(__dirname, "../uploads/positionP1.txt");
 
-    const io = req.app.get('socketio') 
+        if (serverStatus === "RIVAL WAITING" || serverStatus === "SETTING UP") {
+            serverStatus = "PROCESSING PLACEMENT";
 
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+            });
 
-     serverStatus = 'RIVAL WAITING'; //eliminar
-    
-    if(serverStatus === 'RIVAL WAITING' || serverStatus === 'SETTING UP'){
-        serverStatus = 'PROCESSING PLACEMENT'
-      
-        grid = generateGridData();
+            grid = generateGridData();
 
-        let finalGrid = gridPositions(grid, positions);
-        io.sockets.emit('eventsPlayer1', {
-            msg: `You have uploaded the positions ${JSON.stringify(positions)} to your grid`
-        })
-        console.log('grilla final p1', finalGrid)
+            let finalGrid = gridPositions(grid, positions); // final grid pa que ???
 
-        // console.log('grilla + posiciones PLAYER1', grid)
-        fs.writeFileSync(reqPath, JSON.stringify(grid))
+            serverStatus = "WAITING RIVAL";
 
-        serverStatus = 'WAITING RIVAL'
-        res.status(200).send('OK')
-    } else{
-        throw new Error('Server is not on the mood')
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - You have uploaded the positions to your grid.`,
+            });
+
+            fs.writeFileSync(reqPath, JSON.stringify(grid));
+
+            res.status(200).send("OK");
+        } else {
+            throw new Error("Server is not on the mood");
+        }
+    } catch (error) {
+        console.log("P1", error.message);
+        res.status(404).send(error);
     }
-} catch (error) {
-    console.log('error /init p1', error.message)
-    res.status(404).send(error)
-}
 };
 
 const postShot = async (req, res) => {
     // ------ Si yo golpeo ---------- Los params son verdaderos y validos
-    // saco las coordenadas de los params 
+    // saco las coordenadas de los params
     // hago un llamado al rival con las coordenadas enviadas por body y el rival cambia su estado a preparing for shot
-    // cambio mi estado a waiting for shot 
+    // cambio mi estado a waiting for shot
     // recibo la respuesta y la muestro
     // ------ Si me golpean --------- El body es verdadero y valido
     // recibo las coordenadas por body
-    // calculo si fui golpeado o no 
+    // calculo si fui golpeado o no
     // cambio mi estado a preparing shot
     // respondo si golpeo o no
 
     try {
-        const io = req.app.get('socketio') 
-        const { X, Y} = req.params;
+        const io = req.app.get("socketio");
+        const { X, Y } = req.params;
 
-        if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
-            const {shot} = req.body
-            
-            if(shot){
+        if (typeof X === "undefined" || typeof Y === "undefined") {
+            const { shot } = req.body;
+
+            if (shot) {
                 // soy atacado
-                const reqPath = path.join(__dirname, '../uploads/positionP1.txt');
-                const data = fs.readFileSync(reqPath, 'utf8');
-                const response = shotPositions(JSON.parse(data), shot, "Player 1");
+                const reqPath = path.join(
+                    __dirname,
+                    "../uploads/positionP1.txt"
+                );
+                const data = fs.readFileSync(reqPath, "utf8");
+                const response = shotPositions(
+                    JSON.parse(data),
+                    shot,
+                    "Player 1"
+                );
 
-                io.sockets.emit('eventsPlayer1', {
-                    msg: `Your opponent sent a shot to the coordinates ${shot}`
-                })
+                io.sockets.emit("eventsPlayer1", {
+                    msg: `Your opponent sent a shot to the coordinates ${shot}`,
+                });
                 res.json(response);
             }
-        }else{
+        } else {
             // estoy atacando
-            const {data} = await axios.post(`http://localhost:3002/player2/shot/`,{
-                shot: X+Y
-            })
-            io.sockets.emit('eventsPlayer1', {
-                msg: `${data} at coordinates ${X+Y}`
-            })
-            res.sendStatus(200)
+            const { data } = await axios.post(
+                `http://localhost:3002/player2/shot/`,
+                {
+                    shot: X + Y,
+                }
+            );
+            io.sockets.emit("eventsPlayer1", {
+                msg: `${data} at coordinates ${X + Y}`,
+            });
+            res.sendStatus(200);
         }
-        
     } catch (error) {
-        console.log(error.message)
+        console.log(error.message);
     }
-}
+};
 
 const postYield = async (req, res) => {
-  serverStatus = "IDLE";
+    serverStatus = "IDLE";
 
-  const io = req.app.get('socketio') 
-  io.sockets.emit('eventsPlayer1', {
-    msg: 'You surrender :( '
-})
+    const io = req.app.get("socketio");
+    io.sockets.emit("eventsPlayer1", {
+        msg: "You surrender :( ",
+    });
 
-  res.send('Finish game')
+    res.send("Finish game");
 };
 
 module.exports = {
-  getPlayerApi,
-  postChallenge,
-  postRules,
-  postInit,
-  postShot,
-  postYield,
+    getPlayerApi,
+    postChallenge,
+    postRules,
+    postInit,
+    postShot,
+    postYield,
 };

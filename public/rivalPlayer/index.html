@@ -5,9 +5,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Battleship</title>
+    <link rel="stylesheet" href="./main.css">
 </head>
 <body>
     <h1>Battle Ship!</h1>
+    <div class="log-container">
+        <div class="P1window">
+            <span id="P1Status">P1 STATUS:</span>
+            <p id="P1log"></p>
+        </div>
+        <div class="P2window">
+            <span id="P2Status">P2 STATUS:</span>
+            <p id="P2log"></p>
+        </div>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="./game.js"></script>

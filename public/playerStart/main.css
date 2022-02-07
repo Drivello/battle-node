@@ -1,0 +1,17 @@
+.log-container{
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    background-color:red
+}
+.P1window {
+    width: 40%;
+    border: 2px solid black;
+    background-color: rgb(202, 202, 202);
+}
+
+.P2window {
+    width: 40%;
+    border: 2px solid black;
+    background-color: rgb(202, 202, 202);
+}
