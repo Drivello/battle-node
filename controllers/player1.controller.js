@@ -42,7 +42,6 @@ const getPlayerApi = (req, res) => {
 
 const postChallenge = async (req, res) => {
     try {
-        let hours = getLogTime();
         sendEvent(req, {
             player: "P1",
             status: serverStatus,
@@ -87,7 +86,6 @@ const postRules = async (req, res) => {
             serverStatus = "SETTING UP";
 
             grid = generateGridData(rulesP2.width, rulesP2.heigth);
-            // console.log('grilla p1', grid)
 
             sendEvent(req, {
                 player: "P1",
@@ -128,7 +126,7 @@ const postInit = async (req, res) => {
 
             grid = generateGridData();
 
-            let finalGrid = gridPositions(grid, positions); // final grid pa que ???
+            let finalGrid = gridPositions(grid, positions);
 
             serverStatus = "WAITING RIVAL";
 
@@ -138,7 +136,12 @@ const postInit = async (req, res) => {
                 msg: `${getLogTime()} - You have uploaded the positions to your grid.`,
             });
 
-            fs.writeFileSync(reqPath, JSON.stringify(grid));
+            const saveRulesGrid = {
+                grid: finalGrid, 
+                barcosTotales: positions
+            };
+
+            fs.writeFileSync(reqPath, JSON.stringify(saveRulesGrid))
 
             res.status(200).send("OK");
         } else {
@@ -163,12 +166,12 @@ const postShot = async (req, res) => {
     // respondo si golpeo o no
 
     try {
-        const io = req.app.get("socketio");
         const { X, Y } = req.params;
 
-        if (typeof X === "undefined" || typeof Y === "undefined") {
-            const { shot } = req.body;
-
+        if(typeof(X) === 'undefined' || typeof(Y) === 'undefined' ){
+            const {shot} = req.body
+            
+            // ESTE PRIMER IF ESTA BIEN
             if (shot) {
                 // soy atacado
                 const reqPath = path.join(
@@ -182,23 +185,27 @@ const postShot = async (req, res) => {
                     "Player 1"
                 );
 
-                io.sockets.emit("eventsPlayer1", {
-                    msg: `Your opponent sent a shot to the coordinates ${shot}`,
+                sendEvent(req, {
+                    player: "P1",
+                    status: serverStatus,
+                    msg: `${getLogTime()} - Your opponent sent a shot to the coordinates ${shot}.`,
                 });
+
                 res.json(response);
             }
         } else {
             // estoy atacando
-            const { data } = await axios.post(
-                `http://localhost:3002/player2/shot/`,
-                {
-                    shot: X + Y,
-                }
-            );
-            io.sockets.emit("eventsPlayer1", {
-                msg: `${data} at coordinates ${X + Y}`,
+            let {data} = await axios.post(`http://localhost:3002/player2/shot/`,{
+                shot: X+Y
+            })
+
+            sendEvent(req, {
+                player: "P1",
+                status: serverStatus,
+                msg: `${getLogTime()} - ${data} at coordinates ${X+Y}.`,
             });
-            res.sendStatus(200);
+
+            res.sendStatus(200)
         }
     } catch (error) {
         console.log(error.message);
@@ -208,9 +215,10 @@ const postShot = async (req, res) => {
 const postYield = async (req, res) => {
     serverStatus = "IDLE";
 
-    const io = req.app.get("socketio");
-    io.sockets.emit("eventsPlayer1", {
-        msg: "You surrender :( ",
+    sendEvent(req, {
+        player: "P1",
+        status: serverStatus,
+        msg: `${getLogTime()} - You surrender :(.`,
     });
 
     res.send("Finish game");

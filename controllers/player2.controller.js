@@ -2,9 +2,14 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const generateGridData = require("../helpers/generateGrid");
-const gridPositions = require("../helpers/gridpositions");
-const shotPositions = require("../helpers/shotPoisition");
-var serverStatus = "IDLE";
+const gridPositions = require('../helpers/gridpositions');
+const shotPositions = require('../helpers/shotPoisition');
+
+const AppError = require('../Error/appError');
+const catchAsync = require('../helpers/catchAsync');
+
+var serverStatus = 'IDLE';
+
 var grid;
 var grid1 = {};
 
@@ -70,9 +75,12 @@ const postChallenge = async (req, res) => {
 const postRules = async (req, res) => {
     try {
         const { rules } = req.body;
+        const reqPathRules = path.join(__dirname, '../uploads/rules.txt');
         const resp = await axios.post("http://localhost:3001/player1/rules", {
             rules,
         });
+
+        fs.writeFileSync(reqPathRules, JSON.stringify(rules.ships));
 
         if (resp.data.status === "SUCCESS") {
             serverStatus = "SETTING UP";
@@ -115,8 +123,13 @@ const postReady = async (req, res) => {
             });
 
             grid1 = generateGridData();
+            
+            let finalGrid = gridPositions(grid1, positions);
 
-            gridPositions(grid1, positions);
+            const saveRulesGrid = {
+                grid: finalGrid, 
+                barcosTotales: positions
+            };
 
             sendEvent(req, {
                 player: "P2",
@@ -132,7 +145,7 @@ const postReady = async (req, res) => {
                 msg: `${getLogTime()} - Please proceed to shoot your enemy.`,
             });
 
-            fs.writeFileSync(reqPath, JSON.stringify(grid1));
+            fs.writeFileSync(reqPath, JSON.stringify(saveRulesGrid));
 
             res.status(200).send("OK");
         } else {

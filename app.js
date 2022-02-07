@@ -45,6 +45,10 @@ app1.all('*', (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
+app2.all('*', (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
 app1.use(globalErrorHandler);
 app2.use(globalErrorHandler);
 
